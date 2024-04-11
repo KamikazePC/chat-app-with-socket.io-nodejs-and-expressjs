@@ -2,7 +2,6 @@ import express from 'express'
 import { Server } from "socket.io"
 import path from 'path'
 import { fileURLToPath } from 'url'
-import { get } from 'http'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -18,11 +17,11 @@ const expressServer = app.listen(PORT, () => {
     console.log(`listening on port ${PORT}`)
 })
 
-// State
+// state 
 const UsersState = {
     users: [],
-    setUsers: function(newUsersArray) {
-        this.Users = newUsersArray
+    setUsers: function (newUsersArray) {
+        this.users = newUsersArray
     }
 }
 
@@ -33,14 +32,14 @@ const io = new Server(expressServer, {
 })
 
 io.on('connection', socket => {
-    console.log(`User${socket.id} connected`)
+    console.log(`User ${socket.id} connected`)
 
-    // Upon connecction - only to user
-    socket.emit('message', buildMsg(ADMIN, "Welcome to Chat App!") )
+    // Upon connection - only to user 
+    socket.emit('message', buildMsg(ADMIN, "Welcome to Chat App!"))
 
-    // Upon connection
-    socket.on('enterRoom', ({ name, room}) => {
-        // leave previous room
+    socket.on('enterRoom', ({ name, room }) => {
+
+        // leave previous room 
         const prevRoom = getUser(socket.id)?.room
 
         if (prevRoom) {
@@ -50,42 +49,37 @@ io.on('connection', socket => {
 
         const user = activateUser(socket.id, name, room)
 
-        // Cannot update previous room users list until after the state update in activate user
-        if(prevRoom) {
+        // Cannot update previous room users list until after the state update in activate user 
+        if (prevRoom) {
             io.to(prevRoom).emit('userList', {
                 users: getUsersInRoom(prevRoom)
             })
         }
 
-        // Join room
+        // join room 
         socket.join(user.room)
 
-        // To user who joined
+        // To user who joined 
         socket.emit('message', buildMsg(ADMIN, `You have joined the ${user.room} chat room`))
 
-        // To everyone else
+        // To everyone else 
         socket.broadcast.to(user.room).emit('message', buildMsg(ADMIN, `${user.name} has joined the room`))
 
-        // Update userlist for room
+        // Update user list for room 
         io.to(user.room).emit('userList', {
             users: getUsersInRoom(user.room)
         })
 
-        // Update rooms list foe everyone
+        // Update rooms list for everyone 
         io.emit('roomList', {
-            users: getAllActiveRooms()
+            rooms: getAllActiveRooms()
         })
     })
 
-    // // Upon connection - to all others
-    // socket.broadcast.emit('message',`User${socket.id.substring(0,5)}} connected` )
-
-    // When user disconnects - to all others
+    // When user disconnects - to all others 
     socket.on('disconnect', () => {
         const user = getUser(socket.id)
         userLeavesApp(socket.id)
-
-        // socket.broadcast.emit('message', `User${socket.id.substring(0,5)} disconnected` )
 
         if (user) {
             io.to(user.room).emit('message', buildMsg(ADMIN, `${user.name} has left the room`))
@@ -99,28 +93,23 @@ io.on('connection', socket => {
             })
         }
 
-        console.log(`User${socket.id} disconnected`)
+        console.log(`User ${socket.id} disconnected`)
     })
 
-    // Listening for a message event
-    socket.on('message', ({ name, text }) =>{
-        // console.log(data)
-
+    // Listening for a message event 
+    socket.on('message', ({ name, text }) => {
         const room = getUser(socket.id)?.room
-        if(room) {
+        if (room) {
             io.to(room).emit('message', buildMsg(name, text))
         }
-        // io.emit('message', `${socket.id.substring(0,5)} : ${data}`)
     })
 
-    
-    // Listen for activity
+    // Listen for activity 
     socket.on('activity', (name) => {
         const room = getUser(socket.id)?.room
-        if(room) {
-            socket.broadcast.to(room),emit('activity', name)
+        if (room) {
+            socket.broadcast.to(room).emit('activity', name)
         }
-        // socket.broadcast.emit('activity', name)
     })
 })
 
@@ -130,15 +119,15 @@ function buildMsg(name, text) {
         text,
         time: new Intl.DateTimeFormat('default', {
             hour: 'numeric',
-            minute: 'numeric', 
+            minute: 'numeric',
             second: 'numeric'
         }).format(new Date())
     }
 }
 
-// User functions
+// User functions 
 function activateUser(id, name, room) {
-    const user = {id, name, room}
+    const user = { id, name, room }
     UsersState.setUsers([
         ...UsersState.users.filter(user => user.id !== id),
         user
