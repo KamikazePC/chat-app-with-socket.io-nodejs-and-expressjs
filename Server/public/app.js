@@ -70,11 +70,11 @@ let activityTimer
 socket.on("activity", (name) => {
     activity.textContent = `${name} is typing...`
 
-    // Clear after 3 seconds 
+    // Clear after 1 second 
     clearTimeout(activityTimer)
     activityTimer = setTimeout(() => {
         activity.textContent = ""
-    }, 3000)
+    }, 1000)
 })
 
 socket.on('userList', ({ users }) => {
