@@ -9,14 +9,9 @@ const usersList = document.querySelector('.user-list')
 const roomList = document.querySelector('.room-list')
 const chatDisplay = document.querySelector('.chat-display')
 
-/**
- * Sends a message through the socket if the message input is not empty.
- *
- * @param {Event} e - The event object.
- */
 function sendMessage(e) {
     e.preventDefault()
-    if(nameInput.value && msgInput.value && chatRoom.value) {
+    if (nameInput.value && msgInput.value && chatRoom.value) {
         socket.emit('message', {
             name: nameInput.value,
             text: msgInput.value
@@ -42,31 +37,27 @@ document.querySelector('.form-msg')
 document.querySelector('.form-join')
     .addEventListener('submit', enterRoom)
 
-    // Event listener for key presses in the message input
 msgInput.addEventListener('keypress', () => {
-    // Emit 'activity' event with the first 5 characters of the socket id
     socket.emit('activity', nameInput.value)
 })
 
-
-// Listen for messages
+// Listen for messages 
 socket.on("message", (data) => {
     activity.textContent = ""
-    const {name, text, time} = data
+    const { name, text, time } = data
     const li = document.createElement('li')
     li.className = 'post'
     if (name === nameInput.value) li.className = 'post post--left'
     if (name !== nameInput.value && name !== 'Admin') li.className = 'post post--right'
     if (name !== 'Admin') {
-        li.innerHTML = `<div class ="post__header ${name ===
-            nameInput.value
-                ? 'post__header--user'
-                : 'post__header--reply' 
+        li.innerHTML = `<div class="post__header ${name === nameInput.value
+            ? 'post__header--user'
+            : 'post__header--reply'
             }">
-            <span class="post__header--name">${name}</span>
-            <span class="post__header--time">${time}</span>
-            </div>
-            <div class="post__text">${text}</div> `
+        <span class="post__header--name">${name}</span> 
+        <span class="post__header--time">${time}</span> 
+        </div>
+        <div class="post__text">${text}</div>`
     } else {
         li.innerHTML = `<div class="post__text">${text}</div>`
     }
@@ -75,20 +66,15 @@ socket.on("message", (data) => {
     chatDisplay.scrollTop = chatDisplay.scrollHeight
 })
 
-
-// Variable to store the activity timer
 let activityTimer
-
-// Event listener for 'activity' event
 socket.on("activity", (name) => {
-    // Set the text content of the activity element to indicate that someone is typing
     activity.textContent = `${name} is typing...`
 
-    // Clear the activity after 1 second
+    // Clear after 3 seconds 
     clearTimeout(activityTimer)
     activityTimer = setTimeout(() => {
         activity.textContent = ""
-    }, 1000)
+    }, 3000)
 })
 
 socket.on('userList', ({ users }) => {
@@ -99,30 +85,28 @@ socket.on('roomList', ({ rooms }) => {
     showRooms(rooms)
 })
 
-
 function showUsers(users) {
     usersList.textContent = ''
     if (users) {
-        usersList.innerHTML = `<em>Users in ${chatRoom.value}: </em`
+        usersList.innerHTML = `<em>Users in ${chatRoom.value}:</em>`
         users.forEach((user, i) => {
-            usersList.textContent += `${user.name}`
-            if(users.length > 1 && i !== users.length - 1) {
+            usersList.textContent += ` ${user.name}`
+            if (users.length > 1 && i !== users.length - 1) {
                 usersList.textContent += ","
             }
-        }) 
-
+        })
     }
 }
+
 function showRooms(rooms) {
-    usersList.textContent = ''
+    roomList.textContent = ''
     if (rooms) {
-        roomList.innerHTML = '<em>Active Rooms: </em'
+        roomList.innerHTML = '<em>Active Rooms:</em>'
         rooms.forEach((room, i) => {
-            roomList.textContent += `${room}`
-            if(rooms.length > 1 && i !== rooms.length - 1) {
+            roomList.textContent += ` ${room}`
+            if (rooms.length > 1 && i !== rooms.length - 1) {
                 roomList.textContent += ","
             }
-        }) 
-
+        })
     }
 }
